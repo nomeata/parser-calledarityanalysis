@@ -1,0 +1,6 @@
+.stack-work
+*.prof
+output.txt
+test.txt
+sources
+src/conv.txt
