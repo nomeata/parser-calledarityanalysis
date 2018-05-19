@@ -13,11 +13,7 @@ import qualified Text.Megaparsec.Char as M
 import qualified Text.Megaparsec.Pos as M
 import Data.Void (Void)
 
-#if MIN_VERSION_megaparsec(6,0,0)
 type Parser = M.Parsec Void T.Text -- String is the type of the error message
-#else
-import Text.Megaparsec.Text (Parser)
-#endif
 
 -- VHDL versions this parser supports
 data Version = VHDL1993 deriving (Eq, Show, Data)
