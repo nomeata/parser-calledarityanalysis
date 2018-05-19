@@ -8,71 +8,30 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Level4 where
+module Level4 () where
 
-import Data.Monoid
-import Data.Maybe
-import Data.String (IsString)
-
-
-type Parser = IO
 data Version = VHDL1993
-type TextToken = (String, String)
-newtype Comment = Comment (TextToken, TextToken)
-data T = Ter { t_text :: TextToken
-             , t_space :: TextToken -- this is whitespace following this token
-                                    -- todo: the source position is nonsense when the text is ""
-                                    --       turn this into a Maybe TextToken
-             , t_comments :: [Comment] 
-             , t_version :: [Version]
-             }
-data NT a = NTer { nt_token :: a
-                 , nt_version :: [Version]
-                 }
+data T
+data NT a
 
 class Rule f a where
   get :: Decorator f => f a
 
 class Monad f => Decorator f where
   n :: [Version] -> f a -> f (NT a) -- n stands for both NT as well as Node (in grammar tree)
-  ter :: f String -> [Version] -> f T -- token OPTIONALLY followed by spaces
-  ters :: f String -> [Version] -> f T -- token MUST be followed by spaces
   chr :: Char -> [Version] -> f T
   txt :: String -> [Version] -> f T -- token OPTIONALLY followed by spaces
-  txts :: String -> [Version] -> f T -- token MUST be followed by spaces
-  chrt :: Char -> f Char
-  txtt :: String -> f String
-  str :: String -> f String
-  txtti :: String -> f String -- case insensitive
-
-  -- ostr :: String -> f String -- optional String, doesn't fail, returns "" instead
-  -- ostr x = estr (str x)
-  -- parser that returns an empty string instead of failing
-  estr :: f String -> f String
-  estr x = fmap (fromMaybe "") (o x)
 
   -- combinators
-  s :: f a -> f [a]
   m :: f a -> f [a]
   c :: [f a] -> f a -- c stands for choose
   o :: f a -> f (Maybe a) -- o stands for optional
-  try :: f a -> f a
-  -- debug
-  dbg :: (Show a) => String -> f a -> f a
   trace :: String -> f a -> f a
 
   -- helper functions in the grammar
   n93 :: Rule f a => f (NT a)
   n93 = n [VHDL1993] get
 
-  postponed :: f (Maybe T)
-  postponed = o $ txt "postponed" [VHDL1993]
-
-  semicolon :: f T
-  semicolon = chr ';' [VHDL1993]
-
-  colon :: f T
-  colon = chr ':' [VHDL1993]
 
   parenOpen :: f T
   parenOpen = chr '(' [VHDL1993]
@@ -540,144 +499,3 @@ instance Rule f Name => Rule f TypeMark where
     [ TM1 <$> n93
     , TM2 <$> n93
     ]
-  -- todo: figure out later IF and how to make the distinction with the symbol table
-
-
--- makeAll [t|Choices|]
--- makeAll [t|NumericLiteral|]
--- makeAll [t|PhysicalLiteral|]
--- makeAll [t|SelectedName|]
--- makeAll [t|Signature|]
--- makeAll [t|Term|]
-
--- instance Arbitrary ActualDesignator where
---   arbitrary = get
--- instance PrettyPrint ActualDesignator
-
--- instance Arbitrary ActualParameterPart where
---   arbitrary = get
--- instance PrettyPrint ActualParameterPart
-
--- instance Arbitrary ActualPart where
---   arbitrary = get
--- instance PrettyPrint ActualPart
-
--- instance Arbitrary Aggregate where
---   arbitrary = get
--- instance PrettyPrint Aggregate
-
--- instance Arbitrary Allocator where
---   arbitrary = get
--- instance PrettyPrint Allocator
-
--- instance Arbitrary AssociationElement where
---   arbitrary = get
--- instance PrettyPrint AssociationElement
-
--- instance Arbitrary AssociationList where
---   arbitrary = get
--- instance PrettyPrint AssociationList
-
--- instance Arbitrary AttributeName where
---   arbitrary = get
--- instance PrettyPrint AttributeName
-
--- instance Arbitrary Choice where
---   arbitrary = get
--- instance PrettyPrint Choice
-
--- instance Arbitrary Constraint where
---   arbitrary = get
--- instance PrettyPrint Constraint
-
--- instance Arbitrary DiscreteRange where
---   arbitrary = get
--- instance PrettyPrint DiscreteRange
-
--- instance Arbitrary ElementAssociation where
---   arbitrary = get
--- instance PrettyPrint ElementAssociation
-
--- instance Arbitrary Expression where
---   arbitrary = get
--- instance PrettyPrint Expression
-
--- instance Arbitrary Factor where
---   arbitrary = get
--- instance PrettyPrint Factor
-
--- instance Arbitrary FormalDesignator where
---   arbitrary = get
--- instance PrettyPrint FormalDesignator
-
--- instance Arbitrary FormalPart where
---   arbitrary = get
--- instance PrettyPrint FormalPart
-
--- instance Arbitrary FunctionCall where
---   arbitrary = get
--- instance PrettyPrint FunctionCall
-
--- instance Arbitrary IndexConstraint where
---   arbitrary = get
--- instance PrettyPrint IndexConstraint
-
--- instance Arbitrary IndexedName where
---   arbitrary = get
--- instance PrettyPrint IndexedName
-
--- instance Arbitrary Literal where
---   arbitrary = get
--- instance PrettyPrint Literal
-
--- instance Arbitrary Name where
---   arbitrary = get
--- instance PrettyPrint Name
-
--- instance Arbitrary Prefix where
---   arbitrary = get
--- instance PrettyPrint Prefix
-
--- instance Arbitrary Primary where
---   arbitrary = get
--- instance PrettyPrint Primary
-
--- instance Arbitrary QualifiedExpression where
---   arbitrary = get
--- instance PrettyPrint QualifiedExpression
-
--- instance Arbitrary RangeConstraint where
---   arbitrary = get
--- instance PrettyPrint RangeConstraint
-
--- instance Arbitrary Range where
---   arbitrary = get
--- instance PrettyPrint Range
-
--- instance Arbitrary Relation where
---   arbitrary = get
--- instance PrettyPrint Relation
-
--- instance Arbitrary ShiftExpression where
---   arbitrary = get
--- instance PrettyPrint ShiftExpression
-
--- instance Arbitrary SimpleExpression where
---   arbitrary = get
--- instance PrettyPrint SimpleExpression
-
--- instance Arbitrary SliceName where
---   arbitrary = get
--- instance PrettyPrint SliceName
-
--- instance Arbitrary SubtypeIndication where
---   arbitrary = get
--- instance PrettyPrint SubtypeIndication
-
--- instance Arbitrary TypeConversion where
---   arbitrary = get
--- instance PrettyPrint TypeConversion
-
--- instance Arbitrary TypeMark where
---   arbitrary = get
--- instance PrettyPrint TypeMark
