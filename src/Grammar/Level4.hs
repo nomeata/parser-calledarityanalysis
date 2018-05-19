@@ -44,7 +44,7 @@ mkNameOrTypeMark dcon = do
 --          ::= expression
 --            | name
 --            | 'OPEN'
-data ActualDesignator = AD1 (NT Expression) | AD2 (NT Name) | AD3 T deriving (Eq, Show)
+data ActualDesignator = AD1 (NT Expression) | AD2 (NT Name) | AD3 T 
 instance (Rule f Expression, Rule f Name) => Rule f ActualDesignator where
   get = trace "ActualDesignator" $ {-# SCC "get_ActualDesignator" #-} c
     [ AD3 <$> (txt "open" [VHDL1993]) -- order matters here
@@ -57,14 +57,14 @@ instance (Rule f Expression, Rule f Name) => Rule f ActualDesignator where
 
 -- actual_parameter_part
 --          ::= association_list
-newtype ActualParameterPart = APP (NT AssociationList) deriving (Eq, Show)
+newtype ActualParameterPart = APP (NT AssociationList) 
 instance Rule f AssociationList => Rule f ActualParameterPart where
   get = APP <$> n93
 
 -- actual_part
 --          ::= actual_designator
 --            | ( name | type_mark ) '(' actual_designator ')'
-data ActualPart = AP1 (NT ActualDesignator) | APName (NT Name) T (NT ActualDesignator) T | APTypeMark (NT TypeMark) T (NT ActualDesignator) T deriving (Eq, Show)
+data ActualPart = AP1 (NT ActualDesignator) | APName (NT Name) T (NT ActualDesignator) T | APTypeMark (NT TypeMark) T (NT ActualDesignator) T 
 instance (Rule f ActualDesignator, Rule f Name, Rule f TypeMark) => Rule f ActualPart where
   get = trace "ActualPart" $ {-# SCC "get_ActualPart" #-} c
     [ AP1 <$> n93
@@ -74,7 +74,7 @@ instance (Rule f ActualDesignator, Rule f Name, Rule f TypeMark) => Rule f Actua
 
 -- aggregate
 --          ::= '(' element_association ( ',' element_association )* ')'
-data Aggregate = MkAggregate T (NT ElementAssociation) [(T, (NT ElementAssociation))] T deriving (Eq, Show)
+data Aggregate = MkAggregate T (NT ElementAssociation) [(T, (NT ElementAssociation))] T 
 instance Rule f ElementAssociation => Rule f Aggregate where
   get = do
     po <- parenOpen
@@ -85,7 +85,7 @@ instance Rule f ElementAssociation => Rule f Aggregate where
 
 -- allocator
 --          ::= 'NEW' ( subtype_indication | qualified_expression )
-data Allocator = A1 T (NT SubtypeIndication) | A2 T (NT QualifiedExpression) deriving (Eq, Show)
+data Allocator = A1 T (NT SubtypeIndication) | A2 T (NT QualifiedExpression) 
 instance (Rule f SubtypeIndication, Rule f QualifiedExpression) => Rule f Allocator where
   get = c
     [ A1 <$> (txt "new" [VHDL1993]) <*> n93
@@ -94,7 +94,7 @@ instance (Rule f SubtypeIndication, Rule f QualifiedExpression) => Rule f Alloca
 
 -- association_element
 --          ::= ( formal_part '=>' )? actual_part
-data AssociationElement = AE (Maybe (NT FormalPart, T)) (NT ActualPart) deriving (Eq, Show)
+data AssociationElement = AE (Maybe (NT FormalPart, T)) (NT ActualPart) 
 instance (Rule f FormalPart, Rule f ActualPart) => Rule f AssociationElement where
   get = do
     fp <- o $ do
@@ -106,7 +106,7 @@ instance (Rule f FormalPart, Rule f ActualPart) => Rule f AssociationElement whe
 
 -- association_list
 --          ::= association_element ( ',' association_element )*
-data AssociationList = AL (NT AssociationElement) [(T, NT AssociationElement)] deriving (Eq, Show)
+data AssociationList = AL (NT AssociationElement) [(T, NT AssociationElement)] 
 instance Rule f AssociationElement => Rule f AssociationList where
   get = do
     ae <- n93
@@ -115,7 +115,7 @@ instance Rule f AssociationElement => Rule f AssociationList where
 
 -- attribute_name
 --          ::= prefix signature? "'" attribute_designator ( '(' expression ')' )?
-data AttributeName = AN (NT Prefix) (Maybe (NT TypeMark)) T (Maybe (T, (NT Expression), T)) deriving (Eq, Show)
+data AttributeName = AN (NT Prefix) (Maybe (NT TypeMark)) T (Maybe (T, (NT Expression), T)) 
 instance (Rule f Prefix, Rule f TypeMark, Rule f Expression) => Rule f AttributeName where
   get = do
     pp <- n93
@@ -138,7 +138,7 @@ data Choice =
   | CDiscreteRange (NT DiscreteRange)
   -- | CSimpleName (NT SimpleName)
   | COthers T
-  deriving (Eq, Show)
+  
 instance (Rule f SimpleExpression, Rule f DiscreteRange) => Rule f Choice where
   get = c
     [ CSmimpleExpression <$> n93
@@ -150,7 +150,7 @@ instance (Rule f SimpleExpression, Rule f DiscreteRange) => Rule f Choice where
 -- constraint
 --          ::= range_constraint
 --            | index_constraint
-data Constraint = CRange (NT RangeConstraint) | CIndex (NT DiscreteRange) deriving (Eq, Show)
+data Constraint = CRange (NT RangeConstraint) | CIndex (NT DiscreteRange) 
 instance (Rule f RangeConstraint, Rule f DiscreteRange) => Rule f Constraint where
   get = c
     [ CRange <$> n93
@@ -160,7 +160,7 @@ instance (Rule f RangeConstraint, Rule f DiscreteRange) => Rule f Constraint whe
 -- discrete_range
 --          ::= subtype_indication
 --            | range
-data DiscreteRange = DRSubtypeIndication (NT SubtypeIndication) | DRRange (NT Range) deriving (Eq, Show)
+data DiscreteRange = DRSubtypeIndication (NT SubtypeIndication) | DRRange (NT Range) 
 instance (Rule f SubtypeIndication, Rule f Range) => Rule f DiscreteRange where
   get = c
     [ DRSubtypeIndication <$> n93
@@ -169,7 +169,7 @@ instance (Rule f SubtypeIndication, Rule f Range) => Rule f DiscreteRange where
 
 -- element_association
 --          ::= ( choices '=>' )? expression
-data ElementAssociation = EA (Maybe (NT Choice, T)) (NT Expression) deriving (Eq, Show)
+data ElementAssociation = EA (Maybe (NT Choice, T)) (NT Expression) 
 instance (Rule f Choice, Rule f Expression) => Rule f ElementAssociation where
   get = do
     c <- o $ do
@@ -188,7 +188,7 @@ data Expression =
   | Nand (NT SimpleExpression) (T, (NT SimpleExpression))
   | Nor (NT SimpleExpression) (T, (NT SimpleExpression))
   | Xnor (NT SimpleExpression) [(T, (NT SimpleExpression))]
-  deriving (Eq, Show)
+  
 instance Rule f SimpleExpression => Rule f Expression where
   get = {-# SCC "get_IndexedName" #-} c
     [ And  <$> n93 <*> emore "and"
@@ -209,7 +209,7 @@ instance Rule f SimpleExpression => Rule f Expression where
               return (n2, n3)
 
 -- factor   ::= ( primary '**' | 'ABS' | 'NOT' )? primary
-data Factor = FPower (NT Primary) (Maybe (T, (NT Primary))) | FAbs T (NT Primary) | FNot T (NT Primary) deriving (Eq, Show)
+data Factor = FPower (NT Primary) (Maybe (T, (NT Primary))) | FAbs T (NT Primary) | FNot T (NT Primary) 
 instance Rule f Primary => Rule f Factor where
   get = trace "Factor" $ {-# SCC "get_Factor" #-} c -- c
     [ do
@@ -225,14 +225,14 @@ instance Rule f Primary => Rule f Factor where
 
 -- formal_designator
 --          ::= name
-newtype FormalDesignator = MkFormalDesignator (NT Name) deriving (Eq, Show)
+newtype FormalDesignator = MkFormalDesignator (NT Name) 
 instance Rule f Name => Rule f FormalDesignator where
   get = trace "FormalDesignator" $ {-# SCC "get_FormalDesignator" #-} MkFormalDesignator <$> n93
 
 -- formal_part
 --          ::= formal_designator
 --            | ( name | type_mark ) '(' formal_designator ')'
-data FormalPart = FP1 (NT FormalDesignator) | FPName (NT Name) T (NT FormalDesignator) T | FPTypeMark (NT TypeMark) T (NT FormalDesignator) T deriving (Eq, Show)
+data FormalPart = FP1 (NT FormalDesignator) | FPName (NT Name) T (NT FormalDesignator) T | FPTypeMark (NT TypeMark) T (NT FormalDesignator) T 
 instance (Rule f FormalDesignator, Rule f Name, Rule f TypeMark) => Rule f FormalPart where
   get = trace "FormalPart" $ {-# SCC "get_FormalPart" #-} c
     [ FP1 <$> n93
@@ -242,7 +242,7 @@ instance (Rule f FormalDesignator, Rule f Name, Rule f TypeMark) => Rule f Forma
 
 -- function_call
 --          ::= name ( '(' actual_parameter_part ')' )?
-data FunctionCall = FC (NT Name) P_MaybeActualParameterPart deriving (Eq, Show)
+data FunctionCall = FC (NT Name) P_MaybeActualParameterPart 
 -- redundant: Rule f ActualParameterPart
 instance Rule f Name => Rule f FunctionCall where
   get = trace "FunctionCall" $ {-# SCC "get_FunctionCall" #-} do
@@ -252,7 +252,7 @@ instance Rule f Name => Rule f FunctionCall where
 
 -- index_constraint
 --          ::= '(' discrete_range ( ',' discrete_range )* ')'
-data IndexConstraint = IC T (NT DiscreteRange) [(T, NT DiscreteRange)] T deriving (Eq, Show)
+data IndexConstraint = IC T (NT DiscreteRange) [(T, NT DiscreteRange)] T 
 instance Rule f DiscreteRange => Rule f IndexConstraint where
   get = do
     po <- parenOpen
@@ -263,7 +263,7 @@ instance Rule f DiscreteRange => Rule f IndexConstraint where
 
 -- indexed_name
 --          ::= prefix '(' expression ( ',' expression )* ')'
-data IndexedName = IN (NT Prefix) T (NT Expression) [(T, NT Expression)] T deriving (Eq, Show)
+data IndexedName = IN (NT Prefix) T (NT Expression) [(T, NT Expression)] T 
 instance (Rule f Prefix, Rule f Expression) => Rule f IndexedName where
   get = {-# SCC "get_IndexedName" #-} do
     pp <- n93
@@ -284,7 +284,7 @@ data Literal =
   -- | LStringLiteral (NT StringLiteral)
   -- | LBitStringLiteral (NT BitStringLiteral)
   | LNull T
-  deriving (Eq, Show)
+  
 instance (Rule f Name) => Rule f Literal where
   get = c
     [ LNumericLiteral     <$> n93
@@ -300,7 +300,7 @@ instance (Rule f Name) => Rule f Literal where
 --            | indexed_name
 --            | slice_name
 --            | attribute_name
-data Name = N3 (NT Prefix) | N4 (NT IndexedName) | N6 (NT AttributeName) deriving (Eq, Show)
+data Name = N3 (NT Prefix) | N4 (NT IndexedName) | N6 (NT AttributeName) 
 instance (Rule f Prefix, Rule f IndexedName, Rule f AttributeName) => Rule f Name where
   get = trace "Name" $ {-# SCC "get_Name" #-} c
     [ N3 <$> n93
@@ -311,7 +311,7 @@ instance (Rule f Prefix, Rule f IndexedName, Rule f AttributeName) => Rule f Nam
 
 -- prefix   ::= name
 --            | function_call
-data Prefix = PrefixName (NT Name) | PrefixFunctionCall (NT FunctionCall) deriving (Eq, Show)
+data Prefix = PrefixName (NT Name) | PrefixFunctionCall (NT FunctionCall) 
 instance (Rule f Name, Rule f FunctionCall) => Rule f Prefix where
   get = trace "Prefix" $ {-# SCC "get_Prefix" #-} c
     [ PrefixName <$> n93
@@ -335,7 +335,7 @@ data Primary =
   | PTypeConversion (NT TypeConversion)
   | PAllocator (NT Allocator)
   | PExpression T (NT Expression) T
-  deriving (Eq, Show)
+  
 --get_levels: instance (Rule f Name, Rule f Aggregate, Rule f FunctionCall, Rule f QualifiedExpression, Rule f TypeConversion, Rule f Allocator, Rule f Expression) => Rule f Primary where
 instance (Rule f Name, Rule f Aggregate, Rule f FunctionCall, Rule f QualifiedExpression
          , Rule f TypeConversion, Rule f Allocator, Rule f Expression) => Rule f Primary where
@@ -366,7 +366,7 @@ instance (Rule f Name, Rule f Aggregate, Rule f FunctionCall, Rule f QualifiedEx
 
 -- qualified_expression
 --          ::= type_mark "'" ( '(' expression ')' | aggregate )
-data QualifiedExpression = QEExpression (NT TypeMark) T T (NT Expression) T | EQAggregate (NT TypeMark) T deriving (Eq, Show)
+data QualifiedExpression = QEExpression (NT TypeMark) T T (NT Expression) T | EQAggregate (NT TypeMark) T 
 instance (Rule f TypeMark, Rule f Expression) => Rule f QualifiedExpression where
   get = c [qexp, qagg]
     where qexp = do
@@ -384,7 +384,7 @@ instance (Rule f TypeMark, Rule f Expression) => Rule f QualifiedExpression wher
 
 -- range    ::= attribute_name
 --            | simple_expression direction simple_expression
-data Range = R1 (NT AttributeName) | R2 (NT SimpleExpression) (NT SimpleExpression) deriving (Eq, Show)
+data Range = R1 (NT AttributeName) | R2 (NT SimpleExpression) (NT SimpleExpression) 
 instance (Rule f AttributeName, Rule f SimpleExpression) => Rule f Range where
   get = c
     [ R1 <$> n93
@@ -393,7 +393,7 @@ instance (Rule f AttributeName, Rule f SimpleExpression) => Rule f Range where
 
 -- range_constraint
 --          ::= 'range' range
-data RangeConstraint = RC T (NT Range) deriving (Eq, Show)
+data RangeConstraint = RC T (NT Range) 
 instance Rule f Range => Rule f RangeConstraint where
   get = do
     r1 <- txt "range" [VHDL1993]
@@ -402,7 +402,7 @@ instance Rule f Range => Rule f RangeConstraint where
 
 -- relation
 --          ::= shift_expression ( relational_operator shift_expression )?
-data Relation = R (NT SimpleExpression) (Maybe ((NT SimpleExpression))) deriving (Eq, Show)
+data Relation = R (NT SimpleExpression) (Maybe ((NT SimpleExpression))) 
 instance (Rule f SimpleExpression) => Rule f Relation where
   get = do
     se <- n93
@@ -414,7 +414,7 @@ instance (Rule f SimpleExpression) => Rule f Relation where
 
 -- shift_expression
 --          ::= simple_expression ( shift_operator simple_expression )?
-data ShiftExpression = ShiftE (NT SimpleExpression) (Maybe ((NT SimpleExpression))) deriving (Eq, Show)
+data ShiftExpression = ShiftE (NT SimpleExpression) (Maybe ((NT SimpleExpression))) 
 instance (Rule f SimpleExpression) => Rule f ShiftExpression where
   get = do
     se <- n93
@@ -426,8 +426,8 @@ instance (Rule f SimpleExpression) => Rule f ShiftExpression where
 
 -- simple_expression
 --          ::= sign? term ( adding_operator term )*
-data SimpleExpression = SimpleE (NT Primary) [(NT Primary)] deriving (Eq, Show)
--- data SimpleExpression = SimpleE T deriving (Eq, Show)
+data SimpleExpression = SimpleE (NT Primary) [(NT Primary)] 
+-- data SimpleExpression = SimpleE T 
 instance (Rule f Primary) => Rule f SimpleExpression where
   -- get = SimpleE <$> txt "bla" [VHDL1993]
   get = do
@@ -441,13 +441,13 @@ instance (Rule f Primary) => Rule f SimpleExpression where
 
 -- slice_name
 --          ::= prefix '(' discrete_range ')'
-data SliceName = SliceNPrefix (NT DiscreteRange) deriving (Eq, Show)
+data SliceName = SliceNPrefix (NT DiscreteRange) 
 instance Rule f DiscreteRange => Rule f SliceName where
   get = SliceNPrefix <$> n93
 
 -- subtype_indication
 --          ::= name? type_mark constraint?
-data SubtypeIndication = SI (Maybe (NT Name)) (NT TypeMark) (Maybe (NT Constraint)) deriving (Eq, Show)
+data SubtypeIndication = SI (Maybe (NT Name)) (NT TypeMark) (Maybe (NT Constraint)) 
 instance (Rule f Name, Rule f TypeMark, Rule f Constraint) => Rule f SubtypeIndication where
   get = trace "SubtypeIndication" $ {-# SCC "get_SubtypeIndication" #-} do
     nn <- o n93
@@ -457,7 +457,7 @@ instance (Rule f Name, Rule f TypeMark, Rule f Constraint) => Rule f SubtypeIndi
 
 -- type_conversion
 --          ::= type_mark '(' expression ')'
-data TypeConversion = MkTypeConversion (NT TypeMark) T (NT Expression) T deriving (Eq, Show)
+data TypeConversion = MkTypeConversion (NT TypeMark) T (NT Expression) T 
 instance (Rule f TypeMark, Rule f Expression) => Rule f TypeConversion where
   get = do
     tm <- n93
@@ -468,7 +468,7 @@ instance (Rule f TypeMark, Rule f Expression) => Rule f TypeConversion where
 
 -- type_mark
 --          ::= type_name | subtype_name
-data TypeMark = TM1 (NT Name) | TM2 (NT Name) deriving (Eq, Show)
+data TypeMark = TM1 (NT Name) | TM2 (NT Name) 
 instance Rule f Name => Rule f TypeMark where
   get = trace "TypeMark" $ {-# SCC "get_TypeMark" #-} c
     [ TM1 <$> n93
