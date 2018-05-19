@@ -8,20 +8,86 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
---
--- Grammar Level 4 (circular): ActualDesignator, ActualParameterPart, ActualPart, Aggregate, Allocator, AssociationElement, AssociationList, AttributeName, Choice, Choices, Constraint, DiscreteRange, ElementAssociation, Expression, Factor, FormalDesignator, FormalPart, FunctionCall, IndexConstraint, IndexedName, Literal, Name, NumericLiteral, PhysicalLiteral, Prefix, Primary, QualifiedExpression, Range, RangeConstraint, Relation, SelectedName, ShiftExpression, Signature, SimpleExpression, SliceName, SubtypeIndication, Term, TypeConversion, TypeMark
---
-
 module Level4 where
 
-import BasicTypes
--- import CharacterSets
-import Classes
 import Data.Monoid
-import qualified Data.Text.Lazy as T
--- import qualified Data.Text.Prettyprint.Doc as P
--- import Test.QuickCheck.Arbitrary
--- import Classes
+import Data.Maybe
+import Data.String (IsString)
+
+
+type Parser = IO
+data Version = VHDL1993
+type TextToken = (String, String)
+newtype Comment = Comment (TextToken, TextToken)
+data T = Ter { t_text :: TextToken
+             , t_space :: TextToken -- this is whitespace following this token
+                                    -- todo: the source position is nonsense when the text is ""
+                                    --       turn this into a Maybe TextToken
+             , t_comments :: [Comment] 
+             , t_version :: [Version]
+             }
+data NT a = NTer { nt_token :: a
+                 , nt_version :: [Version]
+                 }
+
+class Rule f a where
+  get :: Decorator f => f a
+
+class Monad f => Decorator f where
+  n :: [Version] -> f a -> f (NT a) -- n stands for both NT as well as Node (in grammar tree)
+  ter :: f String -> [Version] -> f T -- token OPTIONALLY followed by spaces
+  ters :: f String -> [Version] -> f T -- token MUST be followed by spaces
+  chr :: Char -> [Version] -> f T
+  txt :: String -> [Version] -> f T -- token OPTIONALLY followed by spaces
+  txts :: String -> [Version] -> f T -- token MUST be followed by spaces
+  chrt :: Char -> f Char
+  txtt :: String -> f String
+  str :: String -> f String
+  txtti :: String -> f String -- case insensitive
+
+  -- ostr :: String -> f String -- optional String, doesn't fail, returns "" instead
+  -- ostr x = estr (str x)
+  -- parser that returns an empty string instead of failing
+  estr :: f String -> f String
+  estr x = fmap (fromMaybe "") (o x)
+
+  -- combinators
+  s :: f a -> f [a]
+  m :: f a -> f [a]
+  c :: [f a] -> f a -- c stands for choose
+  o :: f a -> f (Maybe a) -- o stands for optional
+  try :: f a -> f a
+  -- debug
+  dbg :: (Show a) => String -> f a -> f a
+  trace :: String -> f a -> f a
+
+  -- helper functions in the grammar
+  n93 :: Rule f a => f (NT a)
+  n93 = n [VHDL1993] get
+
+  postponed :: f (Maybe T)
+  postponed = o $ txt "postponed" [VHDL1993]
+
+  semicolon :: f T
+  semicolon = chr ';' [VHDL1993]
+
+  colon :: f T
+  colon = chr ':' [VHDL1993]
+
+  parenOpen :: f T
+  parenOpen = chr '(' [VHDL1993]
+
+  parenClose :: f T
+  parenClose = chr ')' [VHDL1993]
+
+  comma :: f T
+  comma = chr ',' [VHDL1993]
+
+  moreComma :: Rule f a => f [(T, NT a)]
+  moreComma = m $ do
+    cc <- comma
+    cont <- n93
+    return (cc, cont)
 
 type P_MaybeActualParameterPart = (Maybe (T, (NT ActualParameterPart), T))
 maybeActualParameterPart :: Decorator f => f (Maybe (T, NT ActualParameterPart, T))
