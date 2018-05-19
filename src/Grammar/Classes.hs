@@ -10,7 +10,6 @@ module Classes where
 
 import BasicTypes
 import Data.Maybe
-import qualified Data.HashSet as HS
 import qualified Data.Text.Lazy as T
 import Data.String (IsString)
 
@@ -38,7 +37,6 @@ class Monad f => Decorator f where
   -- combinators
   s :: f a -> f [a]
   m :: f a -> f [a]
-  e :: HS.HashSet Char -> f Char -- e stands for element
   c :: [f a] -> f a -- c stands for choose
   o :: f a -> f (Maybe a) -- o stands for optional
   try :: f a -> f a
